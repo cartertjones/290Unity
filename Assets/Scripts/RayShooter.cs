@@ -23,9 +23,9 @@ public class RayShooter : MonoBehaviour
             RaycastHit hit;
             if(Physics.Raycast(ray, out hit)) {
                 GameObject hitObject = hit.transform.gameObject;
-                ReactiveTarget target = hitObject.GetComponent<ReactiveTarget>();
+                Damageable target = hitObject.GetComponent<Damageable>();
                 if(target != null) {
-                    target.ReactToHit();
+                    target.Damage(20);
                     hitPointUI.text =  "Hit object at: " + hitObject.transform.position;
                 }
                 else {
