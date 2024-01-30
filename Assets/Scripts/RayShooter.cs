@@ -9,6 +9,9 @@ public class RayShooter : MonoBehaviour
     [SerializeField] private TextMeshProUGUI hitPointUI;
     [SerializeField] private GameObject bulletIndicator;
 
+    private int damageAmt = 20;
+    private float headshotMultiplier = 1.5f;
+
     void Start() {
         cam = GetComponent<Camera>();
 
@@ -23,10 +26,11 @@ public class RayShooter : MonoBehaviour
             RaycastHit hit;
             if(Physics.Raycast(ray, out hit)) {
                 GameObject hitObject = hit.transform.gameObject;
-                Damageable target = hitObject.GetComponent<Damageable>();
-                if(target != null) {
-                    target.Damage(20);
-                    hitPointUI.text =  "Hit object at: " + hitObject.transform.position;
+                Damageable damageable = FindDamageableRecursively(hitObject);
+                hitPointUI.text =  "Hit object at: " + hitObject.transform.position + " " + hitObject.name;
+
+                if(damageable != null) {
+                    damageable.Damage(hitObject.name == "Head" ? (int)(damageAmt * headshotMultiplier) : damageAmt);
                 }
                 else {
                     StartCoroutine(SphereIndicator(hit.point));
@@ -40,5 +44,26 @@ public class RayShooter : MonoBehaviour
         GameObject sphere = GameObject.Instantiate(bulletIndicator, pos, Quaternion.identity);
         yield return new WaitForSeconds(1);
         Destroy(sphere);
+    }
+
+    public Damageable FindDamageableRecursively(GameObject obj)
+    {
+        Damageable damageable = obj.GetComponent<Damageable>();
+        if (damageable != null)
+        {
+            // Found Damageable component on the current object
+            return damageable;
+        }
+        else
+        {
+            // Check parent recursively
+            Transform parentTransform = obj.transform.parent;
+            while (parentTransform != null && damageable == null)
+            {
+                damageable = parentTransform.GetComponent<Damageable>();
+                parentTransform = parentTransform.parent;
+            }
+            return damageable;
+        }
     }
 }

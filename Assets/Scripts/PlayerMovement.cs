@@ -4,7 +4,7 @@ using System;
 using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour {
-
+    //TODO fix diagonal momentum, wall sticking
     //Assingables
     public Transform playerCam;
     public Transform orientation;

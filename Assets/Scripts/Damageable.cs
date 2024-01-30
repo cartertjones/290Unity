@@ -34,6 +34,10 @@ public class Damageable : MonoBehaviour
         //hide health bar
         this.transform.Find("Healthbar").gameObject.SetActive(false);
         this.transform.Rotate(-75, 0, 0);
+
+        //kill ai if exists
+        WanderingAI behavior = GetComponent<WanderingAI>();
+        if(behavior != null) behavior.SetAlive(false);
         
         yield return new WaitForSeconds(1.5f);
 
@@ -42,6 +46,7 @@ public class Damageable : MonoBehaviour
 
     void Start()
     {
+        //this does not work..
         if(fillBar == null) fillBar = transform.Find("Foreground").GetComponent<Image>();
     }
 
