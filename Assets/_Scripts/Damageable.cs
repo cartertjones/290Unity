@@ -44,12 +44,6 @@ public class Damageable : MonoBehaviour
         Destroy(this.gameObject);
     }
 
-    void Start()
-    {
-        //this does not work..
-        if(fillBar == null) fillBar = transform.Find("Foreground").GetComponent<Image>();
-    }
-
     #region Healthbar UI
     [SerializeField] private Image fillBar;
 

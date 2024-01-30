@@ -2,9 +2,10 @@
 
 using System;
 using UnityEngine;
+using System.Collections;
 
 public class PlayerMovement : MonoBehaviour {
-    //TODO fix diagonal momentum, wall sticking
+    //TODO fix wall sticking
     //Assingables
     public Transform playerCam;
     public Transform orientation;
@@ -33,6 +34,11 @@ public class PlayerMovement : MonoBehaviour {
     public float slideForce = 400;
     public float slideCounterMovement = 0.2f;
 
+    //Sprint
+    public float sprintSpeed = 20;
+    public int fov = 60;
+    public bool sprintChangesFOV = true;
+
     //Jumping
     private bool readyToJump = true;
     private float jumpCooldown = 0.25f;
@@ -46,6 +52,9 @@ public class PlayerMovement : MonoBehaviour {
     private Vector3 normalVector = Vector3.up;
     private Vector3 wallNormalVector;
 
+    private float currentMaxSpeed;
+    Camera mainCam;
+
     void Awake() {
         rb = GetComponent<Rigidbody>();
     }
@@ -54,6 +63,7 @@ public class PlayerMovement : MonoBehaviour {
         playerScale =  transform.localScale;
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
+        mainCam = Camera.main;
     }
 
     
@@ -64,6 +74,16 @@ public class PlayerMovement : MonoBehaviour {
     private void Update() {
         MyInput();
         Look();
+        
+        //print states
+        Debug.Log(
+            "Grounded: " + grounded + 
+            " | Jumping: " + jumping + 
+            " | Crouching: " + crouching + 
+            " | Sliding: " + sliding + 
+            " | Sprinting: " + sprinting + 
+            " | Max Speed: " + currentMaxSpeed + 
+            " | Magnitude: " + rb.velocity.magnitude);
     }
 
     /// <summary>
@@ -74,18 +94,29 @@ public class PlayerMovement : MonoBehaviour {
         y = Input.GetAxisRaw("Vertical");
         jumping = Input.GetButton("Jump");
         crouching = Input.GetKey(KeyCode.LeftControl);
+        sprinting = Input.GetKey(KeyCode.LeftShift);
       
         //Crouching
         if (Input.GetKeyDown(KeyCode.LeftControl))
             StartCrouch();
         if (Input.GetKeyUp(KeyCode.LeftControl))
             StopCrouch();
+
+        //Sprinting
+        if (Input.GetKeyDown(KeyCode.LeftShift))
+            StartSprint();
+        if (Input.GetKeyUp(KeyCode.LeftShift))
+            StopSprint();
     }
 
     private void StartCrouch() {
+        //cancel sprint
+        sprinting = false;
+        StopSprint();
+
         transform.localScale = crouchScale;
         transform.position = new Vector3(transform.position.x, transform.position.y - 0.5f, transform.position.z);
-        if (rb.velocity.magnitude > 0.5f) {
+        if (rb.velocity.magnitude > 2f) {
             if (grounded) {
                 sliding = true;
                 rb.AddForce(orientation.transform.forward * slideForce);
@@ -96,6 +127,28 @@ public class PlayerMovement : MonoBehaviour {
     private void StopCrouch() {
         transform.localScale = playerScale;
         transform.position = new Vector3(transform.position.x, transform.position.y + 0.5f, transform.position.z);
+    }
+
+    private void StartSprint() {
+        StartCoroutine(LerpFOV(fov, fov * 1.2f, 0.2f));
+    }
+    private void StopSprint() {
+        StartCoroutine(LerpFOV(mainCam.fieldOfView, fov, 0.1f));
+    }
+
+    private IEnumerator LerpFOV(float startFOV, float targetFOV, float duration)
+    {
+        float elapsedTime = 0f;
+
+        while (elapsedTime < duration)
+        {
+            mainCam.fieldOfView = Mathf.Lerp(startFOV, targetFOV, elapsedTime / duration);
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
+        // Ensure the final FOV value is set to the target
+        mainCam.fieldOfView = targetFOV;
     }
 
     private void Movement()
@@ -114,9 +167,11 @@ public class PlayerMovement : MonoBehaviour {
         if (readyToJump && jumping) Jump();
 
         // Set max speed
-        float currentMaxSpeed = crouching ? maxSpeed * 0.5f : maxSpeed;
+        if(crouching) currentMaxSpeed = maxSpeed;
+        else if (sprinting) currentMaxSpeed = sprintSpeed; //cannot be crouching and sprinting at same time, but can sprint mid air
+        else currentMaxSpeed = maxSpeed;
 
-        if (sliding && rb.velocity.magnitude < 0.5f) sliding = false;
+        if (sliding && rb.velocity.magnitude <= 2f) sliding = false;
 
         // If sliding down a ramp, add force down so the player stays grounded and also builds speed
         if (sliding && grounded && readyToJump)
@@ -158,8 +213,10 @@ public class PlayerMovement : MonoBehaviour {
         }
 
         // Apply forces to move the player
-        rb.AddForce(orientation.transform.forward * y * moveSpeed * Time.deltaTime * multiplier * multiplierV);
-        rb.AddForce(orientation.transform.right * x * moveSpeed * Time.deltaTime * multiplier);
+        Vector3 moveDirection = orientation.transform.forward * y + orientation.transform.right * x;
+        moveDirection.Normalize(); // Normalize the vector only if its magnitude is greater than 1
+
+        rb.AddForce(moveDirection * moveSpeed * Time.deltaTime * multiplier * multiplierV);
     }
 
     private void Jump() {
@@ -221,9 +278,9 @@ public class PlayerMovement : MonoBehaviour {
         }
         
         //Limit diagonal running. This will also cause a full stop if sliding fast and un-crouching, so not optimal.
-        if (Mathf.Sqrt((Mathf.Pow(rb.velocity.x, 2) + Mathf.Pow(rb.velocity.z, 2))) > maxSpeed) {
+        if (Mathf.Sqrt((Mathf.Pow(rb.velocity.x, 2) + Mathf.Pow(rb.velocity.z, 2))) > currentMaxSpeed) {
             float fallspeed = rb.velocity.y;
-            Vector3 n = rb.velocity.normalized * maxSpeed;
+            Vector3 n = rb.velocity.normalized * currentMaxSpeed;
             rb.velocity = new Vector3(n.x, fallspeed, n.z);
         }
     }
