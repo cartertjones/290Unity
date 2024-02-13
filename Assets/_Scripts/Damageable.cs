@@ -1,23 +1,22 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using System.Collections;
 
 public class Damageable : MonoBehaviour
 {
-    //TODO instantiate a healthbar on load and have it match the parent transform with a vertial offset
-
-    [SerializeField] private int _maxHealth, _currentHealth;
+    [SerializeField] private int _maxHealth;
+    [SerializeField] private int _currentHealth;
+    [SerializeField] private Image fillBar;
 
     public int MaxHealth
     {
-        get { return _maxHealth; }
-        set { _maxHealth = value; }
+        get => _maxHealth;
+        set => _maxHealth = value;
     }
 
     public int CurrentHealth
     {
-        get { return _currentHealth; }
+        get => _currentHealth;
         set
         {
             _currentHealth = value;
@@ -25,36 +24,44 @@ public class Damageable : MonoBehaviour
         }
     }
 
-    public void Damage(int amount) {
+    // Method to apply damage to the object
+    public void Damage(int amount)
+    {
         CurrentHealth -= amount;
-        if(CurrentHealth <= 0) StartCoroutine(Die());
+        if (CurrentHealth <= 0)
+        {
+            StartCoroutine(Die());
+        }
     }
 
-    private IEnumerator Die() {
-        //hide health bar
-        this.transform.Find("Healthbar").gameObject.SetActive(false);
-        this.transform.Rotate(-75, 0, 0);
+    // Coroutine to handle the object's death
+    private IEnumerator Die()
+    {
+        // Hide health bar
+        transform.Find("Healthbar").gameObject.SetActive(false);
+        transform.Rotate(-75, 0, 0);
 
-        //kill ai if exists
+        // Kill AI if it exists
         WanderingAI behavior = GetComponent<WanderingAI>();
-        if(behavior != null) behavior.SetAlive(false);
-        
+        if (behavior != null)
+        {
+            behavior.SetAlive(false);
+        }
+
         yield return new WaitForSeconds(1.5f);
 
-        Destroy(this.gameObject);
+        Destroy(gameObject);
     }
 
-    #region Healthbar UI
-    [SerializeField] private Image fillBar;
-
-    void UpdateFillBar()
+    // Update the health bar UI
+    private void UpdateFillBar()
     {
         fillBar.fillAmount = (float)_currentHealth / _maxHealth;
     }
 
-    void ResetHealth()
+    // Reset the object's health
+    private void ResetHealth()
     {
         CurrentHealth = MaxHealth;
     }
-    #endregion
 }
