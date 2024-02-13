@@ -11,7 +11,9 @@ public class GameManager : MonoBehaviour
     public int player1Score, player2Score;
     public int scoreIncreaseAmount;
 
-    public TextMeshProUGUI player1ScoreText, player2ScoreText;
+    private bool gameActive;
+
+    public TextMeshProUGUI player1ScoreText, player2ScoreText, restartText;
 
     private void Awake()
     {
@@ -24,6 +26,8 @@ public class GameManager : MonoBehaviour
         {
             Destroy(gameObject);
         }
+
+        gameActive = true;
     }
 
     private void Start() {
@@ -31,11 +35,49 @@ public class GameManager : MonoBehaviour
         player2Score = 0;
     }
 
+    public void Update() {
+        if (player1Score >= 10 || player2Score >= 10) {
+            gameActive = false;
+            restartText.text = "Press 'R' to restart";
+
+            if (player1Score >= 10) {
+                player1ScoreText.text = "Player 1 Wins!";
+                player2ScoreText.text = "";
+            }
+            else {
+                player1ScoreText.text = "Player 2 Wins!";
+                player2ScoreText.text = "";
+            }
+
+            //freeze all characters
+            Movement[] players = FindObjectsOfType<Movement>();
+            foreach (Movement player in players) {
+                player.enabled = false;
+            }
+        }
+
+        if(gameActive == false) {
+            if(Input.GetKeyDown(KeyCode.R)) {
+                player1Score = 0;
+                player2Score = 0;
+                player1ScoreText.text = player1Score.ToString();
+                player2ScoreText.text = player2Score.ToString();
+                restartText.text = "";
+                gameActive = true;
+
+                //unfreeze all characters
+                Movement[] players = FindObjectsOfType<Movement>();
+                foreach (Movement player in players) {
+                    player.enabled = true;
+                }
+            }
+        }
+    }
+
     public void IncreasePlayer1Score()
     {
         player1Score += scoreIncreaseAmount;
         player1ScoreText.text = player1Score.ToString();
-        
     }
 
     public void IncreasePlayer2Score()

@@ -13,6 +13,11 @@ public class Movement : MonoBehaviour
     [Header("Movement settings")]
     [SerializeField] private float speed, jumpHeight;
 
+    [Header("Audio settings")]
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip ribbit;
+    [SerializeField] private AudioClip point;
+
     private bool grounded;
     private bool hasScoredInAir;
 
@@ -43,6 +48,7 @@ public class Movement : MonoBehaviour
             if (Input.GetKey(KeyCode.LeftShift) && grounded)
             {
                 rb.velocity = new Vector3(rb.velocity.x, jumpHeight, rb.velocity.z);
+                audioSource.PlayOneShot(ribbit);
             }
         }
 
@@ -58,6 +64,7 @@ public class Movement : MonoBehaviour
             if (Input.GetKey(KeyCode.RightShift) && grounded)
             {
                 rb.velocity = new Vector3(rb.velocity.x, jumpHeight, rb.velocity.z);
+                audioSource.PlayOneShot(ribbit);
             }
         }
     }
@@ -79,6 +86,7 @@ public class Movement : MonoBehaviour
         if (hit.collider.gameObject.CompareTag("Player") && !hasScoredInAir) {
             IncreaseScore();
             hasScoredInAir = true;
+            audioSource.PlayOneShot(point);
         }
     }
 
