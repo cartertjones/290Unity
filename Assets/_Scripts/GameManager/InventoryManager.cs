@@ -27,4 +27,10 @@ public class InventoryManager : MonoBehaviour, IGameManager
     public int GetItemCount(string name, int playerId) {
         return Managers.Player.players[playerId].GetItemCount(name);
     }
+
+    public void ResetAllItems() {
+        foreach (Player player in Managers.Player.players) {
+            player.inventory.Clear();
+        }
+    }
 }

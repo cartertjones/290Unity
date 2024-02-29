@@ -82,14 +82,7 @@ public class Movement : MonoBehaviour
 
     private void OnTriggerEnter(Collider other) {
         if (other.gameObject.CompareTag("Collectable")) {
-            switch(player) {
-                case Players.Player1:
-                    Managers.Player.players[0].AddItem("coin");
-                    break;
-                case Players.Player2:
-                    Managers.Player.players[1].AddItem("coin");
-                    break;
-            }
+            IncreaseScore();
             audioSource.PlayOneShot(point);
             Destroy(other.gameObject);
         }
@@ -112,10 +105,10 @@ public class Movement : MonoBehaviour
 
     private void IncreaseScore() {
         if(player == Players.Player1) {
-            GameManager.Instance.IncreasePlayer1Score();
+            Managers.Inventory.AddItem("points", 0);
         }
         else if(player == Players.Player2) {
-            GameManager.Instance.IncreasePlayer2Score();
+            Managers.Inventory.AddItem("points", 1);
         }
     }
 }

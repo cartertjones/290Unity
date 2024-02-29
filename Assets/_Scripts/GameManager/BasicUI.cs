@@ -47,6 +47,7 @@ public class BasicUI : MonoBehaviour
         } else {
             foreach(string item in player1Items) {
                 int count = Managers.Inventory.GetItemCount(item, 0);
+                if(item == "points") GameManager.Instance.player1Score = count;
                 GUI.Box(new Rect(point1.x, point1.y, width, height), new GUIContent($"{count} {item}"));
             }
         }
@@ -55,6 +56,7 @@ public class BasicUI : MonoBehaviour
         } else {
             foreach(string item in player2Items) {
                 int count = Managers.Inventory.GetItemCount(item, 1);
+                if(item == "points") GameManager.Instance.player2Score = count;
                 GUI.Box(new Rect(point2.x, point2.y, width, height), new GUIContent($"{count} {item}"));
             }
         }

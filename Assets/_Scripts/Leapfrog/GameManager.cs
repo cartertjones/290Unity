@@ -35,7 +35,16 @@ public class GameManager : MonoBehaviour
         player2Score = 0;
     }
 
+    int prevP1Score, prevP2Score;
     public void Update() {
+        if (prevP1Score != player1Score) {
+            prevP1Score = player1Score;
+            player1ScoreText.text = player1Score.ToString();
+        }
+        if (prevP2Score != player2Score) {
+            prevP2Score = player2Score;
+            player2ScoreText.text = player2Score.ToString();
+        }
         if (player1Score >= 10 || player2Score >= 10) {
             gameActive = false;
             restartText.text = "Press 'R' to restart";
@@ -64,6 +73,8 @@ public class GameManager : MonoBehaviour
                 player2ScoreText.text = player2Score.ToString();
                 restartText.text = "";
                 gameActive = true;
+
+                Managers.Inventory.ResetAllItems();
 
                 //unfreeze all characters
                 Movement[] players = FindObjectsOfType<Movement>();
