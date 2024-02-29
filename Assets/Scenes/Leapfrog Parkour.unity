@@ -2102,7 +2102,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   player1Score: 0
   player2Score: 0
-  scoreIncreaseAmount: 10
+  scoreIncreaseAmount: 1
   player1ScoreText: {fileID: 5162066}
   player2ScoreText: {fileID: 231202132}
   restartText: {fileID: 730099596}

@@ -80,6 +80,21 @@ public class Movement : MonoBehaviour
         }
     }
 
+    private void OnTriggerEnter(Collider other) {
+        if (other.gameObject.CompareTag("Collectable")) {
+            switch(player) {
+                case Players.Player1:
+                    Managers.Player.players[0].AddItem("coin");
+                    break;
+                case Players.Player2:
+                    Managers.Player.players[1].AddItem("coin");
+                    break;
+            }
+            audioSource.PlayOneShot(point);
+            Destroy(other.gameObject);
+        }
+    }
+
     private void CheckHit() {
     RaycastHit hit;
     if (Physics.Raycast(transform.position, Vector3.down, out hit, 5f)) {
