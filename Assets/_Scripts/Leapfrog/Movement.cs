@@ -17,9 +17,19 @@ public class Movement : MonoBehaviour
     [SerializeField] private AudioSource audioSource;
     [SerializeField] private AudioClip ribbit;
     [SerializeField] private AudioClip point;
+    [SerializeField] private AudioClip[] squish;
+    [SerializeField] private AudioClip slam;
+
+    [Header("Effects")]
+    [SerializeField] private ParticleSystem squishEffect;
 
     private bool grounded;
+    private bool slamming;
+    private bool beingSquished;
+    private bool squishing;
+    private float squishDuration = 0.1f;
     private bool hasScoredInAir;
+    private bool hasScoredOnPlayer;
 
     private Rigidbody rb;
 
@@ -50,6 +60,11 @@ public class Movement : MonoBehaviour
                 rb.velocity = new Vector3(rb.velocity.x, jumpHeight, rb.velocity.z);
                 audioSource.PlayOneShot(ribbit);
             }
+            if(Input.GetKey(KeyCode.LeftControl) && !grounded && !slamming && !beingSquished) {
+                rb.velocity = new Vector3(rb.velocity.x, -jumpHeight * 2, rb.velocity.z);
+                slamming = true;
+                audioSource.PlayOneShot(slam);
+            }
         }
 
         else if(player == Players.Player2) {
@@ -66,12 +81,22 @@ public class Movement : MonoBehaviour
                 rb.velocity = new Vector3(rb.velocity.x, jumpHeight, rb.velocity.z);
                 audioSource.PlayOneShot(ribbit);
             }
+            if(Input.GetKey(KeyCode.RightControl) && !grounded && !slamming && !beingSquished) {
+                rb.velocity = new Vector3(rb.velocity.x, -jumpHeight * 2, rb.velocity.z);
+                slamming = true;
+                audioSource.PlayOneShot(slam);
+            }
         }
     }
 
     private void OnCollisionEnter(Collision other) {
         if (other.gameObject.CompareTag("Ground")) {
             grounded = true;
+            slamming = false;
+        }
+
+        if (other.gameObject.CompareTag("Player")) {
+            // rb.AddForce(new Vector3(other.contacts[0].normal.x, 0, other.contacts[0].normal.z) * 100, ForceMode.Impulse);
         }
     }
     private void OnCollisionExit(Collision other) {
@@ -90,18 +115,61 @@ public class Movement : MonoBehaviour
 
     private void CheckHit() {
     RaycastHit hit;
-    if (Physics.Raycast(transform.position, Vector3.down, out hit, 5f)) {
-        if (hit.collider.gameObject.CompareTag("Player") && !hasScoredInAir) {
-            IncreaseScore();
-            hasScoredInAir = true;
-            audioSource.PlayOneShot(point);
+        if (Physics.Raycast(transform.position, Vector3.down, out hit, 0.5f))
+        {
+            if (hit.collider.gameObject.CompareTag("Player") && slamming && !squishing)
+            {
+                if(!hasScoredOnPlayer) {
+                    IncreaseScore();
+                    hasScoredOnPlayer = true;
+                    audioSource.PlayOneShot(squish[Random.Range(0, squish.Length)]);
+                    squishEffect.Play();
+                    StartCoroutine(Squish(hit));
+                }
+            }
         }
-    }
 
-    if (grounded) {
-        hasScoredInAir = false;
-    }
+    // if (Physics.Raycast(transform.position, Vector3.down, out hit, 5f)) {
+    //     if (hit.collider.gameObject.CompareTag("Player") && !hasScoredInAir) {
+    //         IncreaseScore();
+    //         hasScoredInAir = true;
+    //         audioSource.PlayOneShot(point);
+    //     }
+    // }
 }
+
+private IEnumerator Squish(RaycastHit hit)
+    {
+        squishing = true; // Set squishing flag to true to prevent multiple coroutine instances
+
+        Movement hitMovement = hit.collider.gameObject.GetComponent<Movement>();
+
+        if(hitMovement) hitMovement.beingSquished = true;
+
+        float elapsedTime = 0f;
+        Vector3 startScale = hit.collider.gameObject.transform.localScale;
+        Vector3 targetScale = new Vector3(1, 0.2f, 1);
+
+        while (elapsedTime < squishDuration)
+        {
+            float scaleFactor = Mathf.Clamp01(elapsedTime / squishDuration);
+            hit.collider.gameObject.transform.localScale = Vector3.Lerp(startScale, targetScale, scaleFactor);
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
+        // Ensure the scale reaches the exact target scale
+        hit.collider.gameObject.transform.localScale = targetScale;
+
+        squishing = false; // Reset squishing flag
+
+        yield return new WaitForSeconds(2f);
+
+        hit.collider.gameObject.transform.localScale = new Vector3(1, 1, 1);
+        hasScoredOnPlayer = false;
+        slamming = false;
+        if(hitMovement) hitMovement.beingSquished = false;
+    }
 
     private void IncreaseScore() {
         if(player == Players.Player1) {

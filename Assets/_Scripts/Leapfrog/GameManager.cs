@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
@@ -28,6 +29,11 @@ public class GameManager : MonoBehaviour
         }
 
         gameActive = true;
+
+        Movement[] players = FindObjectsOfType<Movement>();
+                foreach (Movement player in players) {
+                    player.enabled = true;
+                }
     }
 
     private void Start() {
@@ -67,20 +73,19 @@ public class GameManager : MonoBehaviour
 
         if(gameActive == false) {
             if(Input.GetKeyDown(KeyCode.R)) {
-                player1Score = 0;
-                player2Score = 0;
-                player1ScoreText.text = player1Score.ToString();
-                player2ScoreText.text = player2Score.ToString();
-                restartText.text = "";
-                gameActive = true;
+                int currentSceneIndex = SceneManager.GetActiveScene().buildIndex;
+                SceneManager.LoadScene(currentSceneIndex);
 
-                Managers.Inventory.ResetAllItems();
+                // player1Score = 0;
+                // player2Score = 0;
+                // player1ScoreText.text = player1Score.ToString();
+                // player2ScoreText.text = player2Score.ToString();
+                // restartText.text = "";
+                // gameActive = true;
 
-                //unfreeze all characters
-                Movement[] players = FindObjectsOfType<Movement>();
-                foreach (Movement player in players) {
-                    player.enabled = true;
-                }
+                // Managers.Inventory.ResetAllItems();
+
+                // //unfreeze all characters
             }
         }
     }
