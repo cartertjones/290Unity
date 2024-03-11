@@ -55,12 +55,12 @@ public class Movement : MonoBehaviour
             Vector3 move = new Vector3(moveX, 0, moveZ);
             rb.velocity = new Vector3(move.x, rb.velocity.y, move.z);
 
-            if (Input.GetKey(KeyCode.LeftShift) && grounded)
+            if (Input.GetKey(KeyCode.CapsLock) && grounded)
             {
                 rb.velocity = new Vector3(rb.velocity.x, jumpHeight, rb.velocity.z);
                 audioSource.PlayOneShot(ribbit);
             }
-            if(Input.GetKey(KeyCode.LeftControl) && !grounded && !slamming && !beingSquished) {
+            if(Input.GetKey(KeyCode.LeftShift) && !grounded && !slamming && !beingSquished) {
                 rb.velocity = new Vector3(rb.velocity.x, -jumpHeight * 2, rb.velocity.z);
                 slamming = true;
                 audioSource.PlayOneShot(slam);
@@ -68,10 +68,10 @@ public class Movement : MonoBehaviour
         }
 
         else if(player == Players.Player2) {
-            if (Input.GetKey(KeyCode.UpArrow)) moveZ = speed;
-            if (Input.GetKey(KeyCode.DownArrow)) moveZ = -speed;
-            if (Input.GetKey(KeyCode.LeftArrow)) moveX = -speed;
-            if (Input.GetKey(KeyCode.RightArrow)) moveX = speed;
+            if (Input.GetKey(KeyCode.P)) moveZ = speed;
+            if (Input.GetKey(KeyCode.Semicolon)) moveZ = -speed;
+            if (Input.GetKey(KeyCode.L)) moveX = -speed;
+            if (Input.GetKey(KeyCode.Quote)) moveX = speed;
 
             Vector3 move = new Vector3(moveX, 0, moveZ);
             rb.velocity = new Vector3(move.x, rb.velocity.y, move.z);
@@ -81,7 +81,7 @@ public class Movement : MonoBehaviour
                 rb.velocity = new Vector3(rb.velocity.x, jumpHeight, rb.velocity.z);
                 audioSource.PlayOneShot(ribbit);
             }
-            if(Input.GetKey(KeyCode.RightControl) && !grounded && !slamming && !beingSquished) {
+            if(Input.GetKey(KeyCode.RightArrow) && !grounded && !slamming && !beingSquished) {
                 rb.velocity = new Vector3(rb.velocity.x, -jumpHeight * 2, rb.velocity.z);
                 slamming = true;
                 audioSource.PlayOneShot(slam);
@@ -94,13 +94,17 @@ public class Movement : MonoBehaviour
             grounded = true;
             slamming = false;
         }
+        if (other.gameObject.CompareTag("Platform") && other.contacts[0].normal == Vector3.up){
+            grounded = true;
+            slamming = false;
+        }
 
         if (other.gameObject.CompareTag("Player")) {
             // rb.AddForce(new Vector3(other.contacts[0].normal.x, 0, other.contacts[0].normal.z) * 100, ForceMode.Impulse);
         }
     }
     private void OnCollisionExit(Collision other) {
-        if (other.gameObject.CompareTag("Ground")) {
+        if (other.gameObject.CompareTag("Ground") || other.gameObject.CompareTag("Platform")) {
             grounded = false;
         }
     }
